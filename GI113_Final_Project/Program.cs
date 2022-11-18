@@ -1,6 +1,5 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using System.Diagnostics;
 using static System.Console;
 using static GI113_Final_Project.ConsoleUtilities;
 using static GI113_Final_Project.DefinedColors;
@@ -8,6 +7,7 @@ using static GI113_Final_Project.MenuOptions;
 using static GI113_Final_Project.CombatSystem;
 using static GI113_Final_Project.MonsterInfo;
 using static GI113_Final_Project.Inventory;
+using static GI113_Final_Project.ShopSystem;
 
 namespace GI113_Final_Project
 {
@@ -133,6 +133,7 @@ namespace GI113_Final_Project
 
         static void StartingCombat(MonsterBaseStats[] monsterPool)
         {
+            /*
             WriteLineWithSpeed($"Entering level {level}...");
             //For testing
             var random = new Random();
@@ -145,6 +146,10 @@ namespace GI113_Final_Project
             WeaponInventory.UpLevel(WeaponInfo.WeaponBaseStats.sword);
             Clear();
             //
+            */
+            var random = new Random();
+            Wallet.AddMoney(random.Next(level * 100, level * 200 + 1));
+            ShopMainMenu();
             if (level is 5 or 10)
             {
                 

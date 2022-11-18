@@ -1469,9 +1469,11 @@ namespace GI113_Final_Project
 
     class ShopSystem
     {
-        public static void MainMenu()
+        public static void ShopMainMenu()
         {
-            WriteLineWithSpeed("please select your options... ");
+            WriteLine(BigText.shop);
+            NewEmptyLines(1);
+            WriteLineWithSpeed("Please select your options... ");
             NewEmptyLines(1);
             string[] menuOption = { "Item Shop", "Blacksmith", "Next Floor" };
             int index = CreateMenu(menuOption, combatColors);
@@ -1494,14 +1496,13 @@ namespace GI113_Final_Project
                 WriteLine("═════════════════════════════════════");
                 for (int i = 0; i < ItemInventory.currentInventory.Length; i++)
                 {
-                    WriteLine($"{ItemInventory.currentInventory[i].item.name}:");
-                    WriteLine($"Currently have: x{ItemInventory.currentInventory[i].amount}");
+                    WriteLine($"{ItemInventory.currentInventory[i].item.name} (x{ItemInventory.currentInventory[i].amount}):");
                     WriteLine($"Price: {ItemInventory.currentInventory[i].item.price}");
                     WriteLine($"Description: {ItemInventory.currentInventory[i].item.description}");
-                    WriteLine($"HP: {ItemInventory.currentInventory[i].item.hpValue}");
-                    WriteLine($"ATK: {ItemInventory.currentInventory[i].item.atkValue}");
-                    WriteLine($"DEF: {ItemInventory.currentInventory[i].item.defValue}");
-                    WriteLine($"MP: {ItemInventory.currentInventory[i].item.mpValue}");
+                    WriteLine($"HP: +{ItemInventory.currentInventory[i].item.hpValue}%");
+                    WriteLine($"ATK: +{ItemInventory.currentInventory[i].item.atkValue}%");
+                    WriteLine($"DEF: +{ItemInventory.currentInventory[i].item.defValue}%");
+                    WriteLine($"MP: +{ItemInventory.currentInventory[i].item.mpValue}%");
                     string revive = ItemInventory.currentInventory[i].item.revive ? "Yes" : "No";
                     WriteLine($"Revive: {revive}");
                     WriteLine("═════════════════════════════════════");
@@ -1522,19 +1523,39 @@ namespace GI113_Final_Project
 
             public static void ItemMenu()
             {
+                Clear();
                 UpdateItemGUI();
                 NewEmptyLines(1);
-                WriteLineWithSpeed("please select item to buy... ");
+                WriteLineWithSpeed("Please select item to buy... ");
                 NewEmptyLines(1);
                 List<string> itemOption = FetchItems();
-                itemOption.Add("Go back");
+                itemOption.Add("Go Back");
                 int index = CreateMenu(itemOption.ToArray(), combatColors);
-                if (index == itemOption.Count-1)
+                if (index == itemOption.Count - 1)
                 {
-                    return;
+                    Clear();
+                    ShopMainMenu();
+                }
+                
+                Clear();
+                WriteLineWithSpeed("Would you like to continue?");
+                if (CreateMenu(new[] { "Confirm", "Cancel" }, combatColors) == 1)
+                {
+                    Clear();
+                    ItemMenu();
+                }
+                
+                Clear();
+                if (Wallet.money < ItemInventory.currentInventory[index].item.price)
+                {
+                    WriteLineWithSpeed("You don't have enough money for this item...");
+                    Clear();
+                    ItemMenu();
                 }
                 ItemInventory.AddItem(ItemInventory.currentInventory[index],1);
                 Wallet.RemoveMoney(ItemInventory.currentInventory[index].item.price);
+                Clear();
+                ItemMenu();
             }
         }
 
@@ -1550,9 +1571,9 @@ namespace GI113_Final_Project
                     WriteLine($"Current Modifier: {WeaponInventory.weaponSets[i].baseModifier}");
                     if (WeaponInventory.weaponSets[i].lvl < 5)
                     {
-                        double newStat = WeaponInventory.weaponSets[i].baseModifier + (Program.level - 1) / 10.0;
+                        double newStat = WeaponInventory.weaponSets[i].baseModifier + Program.level / 10.0;
                         WriteLine($"Upgrade From: {WeaponInventory.weaponSets[i].baseModifier} -> {newStat}");
-                        WriteLine($"Upgrade Price: {WeaponInventory.weaponSets[i].lvl * 100}");
+                        WriteLine($"Upgrade Price: {WeaponInventory.weaponSets[i].price}");
                     }
                     else
                     {
@@ -1578,19 +1599,39 @@ namespace GI113_Final_Project
             }
             public static void WeaponMenu()
             {
+                Clear();
                 UpdateWeaponGUI();
                 NewEmptyLines(1);
-                WriteLineWithSpeed("please select weapon to upgrade.. ");
+                WriteLineWithSpeed("Please select weapon to upgrade... ");
                 NewEmptyLines(1);
                 List<string> weaponOption = FetchWeapons();
-                weaponOption.Add("Go back");
+                weaponOption.Add("Go Back");
                 int index = CreateMenu(weaponOption.ToArray(), combatColors);
-                if (index == weaponOption.Count-1)
+                if (index == weaponOption.Count - 1)
                 {
-                    return;
+                    Clear();
+                    ShopMainMenu();
                 }
-               WeaponInventory.UpLevel(WeaponInventory.weaponSets[index]);
-               Wallet.RemoveMoney(70);
+                
+                Clear();
+                WriteLineWithSpeed("Would you like to continue?");
+                if (CreateMenu(new[] { "Confirm", "Cancel" }, combatColors) == 1)
+                {
+                    Clear();
+                    WeaponMenu();
+                }
+                
+                Clear();
+                if (Wallet.money < 70)
+                {
+                    WriteLineWithSpeed("You don't have enough money to upgrade this item...");
+                    Clear();
+                    WeaponMenu();
+                }
+                WeaponInventory.UpLevel(WeaponInventory.weaponSets[index]);
+                Wallet.RemoveMoney(WeaponInventory.weaponSets[index].price);
+                Clear();
+                WeaponMenu();
             }
         }
     }
