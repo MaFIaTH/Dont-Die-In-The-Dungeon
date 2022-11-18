@@ -13,4 +13,22 @@
     <SourceRoot Include="C:\Users\ASUS\.nuget\packages\" />
     <SourceRoot Include="C:\Program Files\dotnet\sdk\NuGetFallbackFolder\" />
   </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' AND '$(ExcludeRestorePackageImports)' != 'true' ">
+    <Content Include="$(NuGetPackageRoot)aspnet.webapi.client\1.5.0\contentFiles\any\net6.0\appsettings.json" Condition="Exists('$(NuGetPackageRoot)aspnet.webapi.client\1.5.0\contentFiles\any\net6.0\appsettings.json')">
+      <NuGetPackageId>AspNet.WebApi.Client</NuGetPackageId>
+      <NuGetPackageVersion>1.5.0</NuGetPackageVersion>
+      <NuGetItemType>Content</NuGetItemType>
+      <Pack>false</Pack>
+      <Private>False</Private>
+      <Link>appsettings.json</Link>
+    </Content>
+    <Content Include="$(NuGetPackageRoot)aspnet.webapi.client\1.5.0\contentFiles\any\net6.0\nswag.json" Condition="Exists('$(NuGetPackageRoot)aspnet.webapi.client\1.5.0\contentFiles\any\net6.0\nswag.json')">
+      <NuGetPackageId>AspNet.WebApi.Client</NuGetPackageId>
+      <NuGetPackageVersion>1.5.0</NuGetPackageVersion>
+      <NuGetItemType>Content</NuGetItemType>
+      <Pack>false</Pack>
+      <Private>False</Private>
+      <Link>nswag.json</Link>
+    </Content>
+  </ItemGroup>
 </Project>

@@ -13,3 +13,6 @@ C:\Users\ASUS\RiderProjects\GI113_Final_Project\GI113_Final_Project\obj\Debug\ne
 C:\Users\ASUS\RiderProjects\GI113_Final_Project\GI113_Final_Project\obj\Debug\net6.0\GI113_Final_Project.pdb
 C:\Users\ASUS\RiderProjects\GI113_Final_Project\GI113_Final_Project\obj\Debug\net6.0\GI113_Final_Project.genruntimeconfig.cache
 C:\Users\ASUS\RiderProjects\GI113_Final_Project\GI113_Final_Project\obj\Debug\net6.0\ref\GI113_Final_Project.dll
+C:\Users\ASUS\RiderProjects\GI113_Final_Project\GI113_Final_Project\bin\Debug\net6.0\AspNet.WebApi.Client.dll
+C:\Users\ASUS\RiderProjects\GI113_Final_Project\GI113_Final_Project\bin\Debug\net6.0\Newtonsoft.Json.dll
+C:\Users\ASUS\RiderProjects\GI113_Final_Project\GI113_Final_Project\obj\Debug\net6.0\GI113_Final_Project.csproj.CopyComplete
