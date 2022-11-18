@@ -1469,6 +1469,24 @@ namespace GI113_Final_Project
 
     class ShopSystem
     {
+        public static void MainMenu()
+        {
+            WriteLineWithSpeed("please select your options... ");
+            NewEmptyLines(1);
+            string[] menuOption = { "Item Shop", "Blacksmith", "Next Floor" };
+            int index = CreateMenu(menuOption, combatColors);
+            switch (index)
+            {
+                case 0 :
+                    ItemShop.ItemMenu();
+                    break;
+                case 1 :
+                    Blacksmith.WeaponMenu();
+                    break;
+                case 2 :
+                    break;
+            }
+        }
         public class ItemShop
         {
             private static void UpdateItemGUI()
@@ -1500,6 +1518,23 @@ namespace GI113_Final_Project
                 }
 
                 return itemOptions;
+            }
+
+            public static void ItemMenu()
+            {
+                UpdateItemGUI();
+                NewEmptyLines(1);
+                WriteLineWithSpeed("please select item to buy... ");
+                NewEmptyLines(1);
+                List<string> itemOption = FetchItems();
+                itemOption.Add("Go back");
+                int index = CreateMenu(itemOption.ToArray(), combatColors);
+                if (index == itemOption.Count-1)
+                {
+                    return;
+                }
+                ItemInventory.AddItem(ItemInventory.currentInventory[index],1);
+                Wallet.RemoveMoney(ItemInventory.currentInventory[index].item.price);
             }
         }
 
@@ -1540,6 +1575,22 @@ namespace GI113_Final_Project
                 }
 
                 return weaponOptions;
+            }
+            public static void WeaponMenu()
+            {
+                UpdateWeaponGUI();
+                NewEmptyLines(1);
+                WriteLineWithSpeed("please select weapon to upgrade.. ");
+                NewEmptyLines(1);
+                List<string> weaponOption = FetchWeapons();
+                weaponOption.Add("Go back");
+                int index = CreateMenu(weaponOption.ToArray(), combatColors);
+                if (index == weaponOption.Count-1)
+                {
+                    return;
+                }
+               WeaponInventory.UpLevel(WeaponInventory.weaponSets[index]);
+               Wallet.RemoveMoney(70);
             }
         }
     }
