@@ -62,6 +62,21 @@ namespace GI113_Final_Project
 █    ▐             ▐       ▐          █         █       █ ▐         █   █    █         
 ▐                                     ▐         ▐       ▐           ▐   ▐    ▐         
 ";
+
+    public static string shop = @"
+ ▄▄▄▄▄▄▄▄▄▄▄  ▄         ▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄ 
+▐░░░░░░░░░░░▌▐░▌       ▐░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌
+▐░█▀▀▀▀▀▀▀▀▀ ▐░▌       ▐░▌▐░█▀▀▀▀▀▀▀█░▌▐░█▀▀▀▀▀▀▀█░▌
+▐░▌          ▐░▌       ▐░▌▐░▌       ▐░▌▐░▌       ▐░▌
+▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄█░▌▐░▌       ▐░▌▐░█▄▄▄▄▄▄▄█░▌
+▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░▌       ▐░▌▐░░░░░░░░░░░▌
+ ▀▀▀▀▀▀▀▀▀█░▌▐░█▀▀▀▀▀▀▀█░▌▐░▌       ▐░▌▐░█▀▀▀▀▀▀▀▀▀ 
+          ▐░▌▐░▌       ▐░▌▐░▌       ▐░▌▐░▌          
+ ▄▄▄▄▄▄▄▄▄█░▌▐░▌       ▐░▌▐░█▄▄▄▄▄▄▄█░▌▐░▌          
+▐░░░░░░░░░░░▌▐░▌       ▐░▌▐░░░░░░░░░░░▌▐░▌          
+ ▀▀▀▀▀▀▀▀▀▀▀  ▀         ▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀           
+                                                    
+";
 }
     
     //Combat Related Class
@@ -319,17 +334,19 @@ namespace GI113_Final_Project
         public string name { get; }
         public double baseModifier { get; set; }
         public int lvl { get; set; }
-        WeaponBaseStats(string name, double baseModifier, int lvl = 1)
+        public int price { get; }
+        WeaponBaseStats(string name, int price, double baseModifier, int lvl = 1)
         {
             this.name = name;
+            this.price = price;
             this.baseModifier = baseModifier;
             this.lvl = lvl;
         }
 
-        public static WeaponBaseStats sword = new WeaponBaseStats("Great Sword", 1.0);
-        public static WeaponBaseStats staff = new WeaponBaseStats("Mage Staff", 1.0);
-        public static WeaponBaseStats bow = new WeaponBaseStats("Hunting Bow", 1.0);
-        public static WeaponBaseStats lute = new WeaponBaseStats("Lute", 1.0);
+        public static WeaponBaseStats sword = new WeaponBaseStats("Great Sword", 70, 1.0);
+        public static WeaponBaseStats staff = new WeaponBaseStats("Mage Staff", 70, 1.0);
+        public static WeaponBaseStats bow = new WeaponBaseStats("Hunting Bow", 70, 1.0);
+        public static WeaponBaseStats lute = new WeaponBaseStats("Lute", 70, 1.0);
     }
 }
     class Inventory
