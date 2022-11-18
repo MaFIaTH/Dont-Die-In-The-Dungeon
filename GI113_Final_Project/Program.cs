@@ -33,6 +33,7 @@ namespace GI113_Final_Project
                     WriteLineWithSpeed("Starting the game");
                     Thread.Sleep(1000);
                     Clear();
+                    StoryIntro();
                     //CharacterIntro();
                     Clear();
                     StartingCombat(DefinedMonsterPool.oneToFive);
@@ -42,6 +43,25 @@ namespace GI113_Final_Project
                     WriteLineWithSpeed("Exiting the game");
                     break;
             }
+        }
+
+        static void StoryIntro()
+        {
+            WriteLineWithSpeed("Text test01");
+            Thread.Sleep(1000);
+            Clear();
+        }
+        static void GoodEnding()
+        {
+            WriteLineWithSpeed("Good ending <3");
+            Thread.Sleep(1000);
+            Clear();
+        }
+        static void BadEnding()
+        {
+            WriteLineWithSpeed("Bad ending T-T");
+            Thread.Sleep(1000);
+            Clear();
         }
 
 
