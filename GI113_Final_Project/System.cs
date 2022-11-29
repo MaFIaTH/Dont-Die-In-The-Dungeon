@@ -66,6 +66,7 @@ namespace GI113_Final_Project
         }
         public static void WriteLineWithSpeed(string text, int milliSecond = 35, ConsoleColor[] colors = null)
         {
+            bool isSkipped = false;
             if (colors != null)
             {
                 BackgroundColor = colors[0];
@@ -74,12 +75,20 @@ namespace GI113_Final_Project
             foreach (char c in text)
             {
                 int milli = KeyAvailable ? 0 : milliSecond;
+                isSkipped = KeyAvailable;
                 Write(c);
                 Thread.Sleep(milli);
             }
-            if (KeyAvailable)
+            if (isSkipped)
             {
-                ReadKey(true);
+                while (ReadKey(true).Key is ConsoleKey.E or ConsoleKey.Enter)
+                {
+                    //Loop until key is release.
+                    if (!KeyAvailable)
+                    {
+                        break;
+                    }
+                }
             }
             Write("\n");
         }
@@ -156,6 +165,8 @@ namespace GI113_Final_Project
             CombatSystem.bossSkill = bossSkill == null ? BossSkillInfo.SkillBaseStats.leviathan : bossSkill;
             currentPlayerPool = new ArrayList[temp.Length];
             randomizedMonsterPool = new ArrayList[isBossFight ? 1 : maxMonsterAmount];
+            currentPlayerTurn = 0;
+            currentMonsterTurn = 0;
             //Convert to player ArrayList 
             for (int i = 0; i < currentPlayerPool.Length; i++)
             {
@@ -225,15 +236,16 @@ namespace GI113_Final_Project
             WriteLine(fightTitle);
             Thread.Sleep(2000);
             Clear();
-            WriteLineWithSpeed("Player:");
+            WriteLine(BigText.player);
+            NewEmptyLines(1);
             //scale player's stat
-            /*
+            
             PlayerScaleModifier.defaultScaleModifier = new[]
             {
-                (3.75 * Program.level + 34.58),  (3.75 * Program.level + 34.58),  (3.75 * Program.level + 34.58),
-                (3.75 * Program.level + 34.58)
+                (0.54 * Program.level + 0.46),  (0.425 * Program.level + 0.575),  (0.74 * Program.level + 0.26),
+                (0.16 * Program.level + 0.84)
             };
-            */
+            
             for (int i = 0; i < currentPlayerPool.Length; i++)
             {
                 for (int j = 1; j < 5; j++)
@@ -254,17 +266,17 @@ namespace GI113_Final_Project
             WriteLine(BigText.vs);
             Thread.Sleep(1000);
             Clear();
-            string monsterOrBoss = isBossFight ? "Boss" : "Monster";
-            WriteLineWithSpeed($"{monsterOrBoss}:");
+            string monsterOrBoss = isBossFight ? BigText.boss : BigText.monster;
+            WriteLine($"{monsterOrBoss}");
+            NewEmptyLines(1);
 
             //scale monster's stat
-            /*
+            
             MonsterScaleModifier.defaultScaleModifier = new[]
             {
-                (3.75 * Program.level + 34.58),  (3.75 * Program.level + 34.58),  (3.75 * Program.level + 34.58),
-                (3.75 * Program.level + 34.58)
+                (0.32 * Program.level + 0.68),  (0.69 * Program.level + 0.31),  (0.615 * Program.level + 0.385)
             };
-            */
+            
             if (!isBossFight)
             {
                 for (int i = 0; i < maxMonsterAmount; i++)
@@ -299,13 +311,11 @@ namespace GI113_Final_Project
             {
                 if (!PlayerCheck())
                 {
-
                     return false;
                 }
 
                 if (!MonsterCheck())
                 {
-                    Program.level++;
                     return true;
                 }
 
@@ -375,8 +385,8 @@ namespace GI113_Final_Project
                 }
             }
 
-            Thread.Sleep(1000);
             WriteLineWithSpeed("ALL MONSTERS ARE DEAD");
+            Thread.Sleep(1000);
             return false;
         }
 
@@ -453,7 +463,8 @@ namespace GI113_Final_Project
                 if (encoreDuration[i] <= 1 && underEncore[i])
                 {
                     encoreDuration[i] -= 1;
-                    currentPlayerPool[i][2] = (int)currentPlayerPool[i][2] - SkillBaseStats.encore.atkValue;
+                    currentPlayerPool[i][2] = (int)currentPlayerPool[i][2] - Convert.ToInt32(playerMaxAtk[i]
+                        * (SkillBaseStats.encore.atkValue / 100.0));
                     underEncore[i] = false;
                     WriteLineWithSpeed($"{currentPlayerPool[i][0]}'s Encore effect ran out...");
                 }
@@ -468,7 +479,8 @@ namespace GI113_Final_Project
                 if (roarDuration[i] <= 1 && underRoar[i])
                 {
                     roarDuration[i] -= 1;
-                    currentPlayerPool[i][2] = (int)currentPlayerPool[i][2] + BossSkillInfo.SkillBaseStats.roar.atkValue;
+                    currentPlayerPool[i][2] = (int)currentPlayerPool[i][2] + Convert.ToInt32(playerMaxAtk[i]
+                        * (BossSkillInfo.SkillBaseStats.roar.atkValue / 100.0));
                     underRoar[i] = false;
                     WriteLineWithSpeed($"{currentPlayerPool[i][0]}'s Roar of The Ocean effect ran out!");
                 }
@@ -483,7 +495,8 @@ namespace GI113_Final_Project
                 if (kingDuration[i] <= 1 && underKing[i])
                 {
                     kingDuration[i] -= 1;
-                    currentPlayerPool[i][3] = (int)currentPlayerPool[i][3] + BossSkillInfo.SkillBaseStats.king.defValue;
+                    currentPlayerPool[i][3] = (int)currentPlayerPool[i][3] + Convert.ToInt32(playerMaxDef[i]
+                        * (BossSkillInfo.SkillBaseStats.king.defValue / 100.0));
                     underKing[i] = false;
                     WriteLineWithSpeed($"{currentPlayerPool[i][0]}'s King of The Sea effect ran out!");
                 }
@@ -539,11 +552,17 @@ namespace GI113_Final_Project
                 {
                     WriteLine($"{bossSkill[i].name}:");
                     WriteLine($"Description: {bossSkill[i].description}");
-                    WriteLine($"Deal damage: {bossSkill[i].hpValue}");
+                    WriteLine($"Deal damage: by {bossSkill[i].hpValue}% of enemy's base ATK (Ignore DEF)");
                     if (bossSkill[i].debuff)
                     {
-                        WriteLine($"Reduce ATK: {bossSkill[i].atkValue}");
-                        WriteLine($"Reduce DEF: {bossSkill[i].defValue}");
+                        if (bossSkill[i].atkValue > 0)
+                        {
+                            WriteLine($"Reduce ATK: by {bossSkill[i].atkValue}% of member's base ATK");
+                        }
+                        if (bossSkill[i].defValue > 0)
+                        {
+                            WriteLine($"Reduce DEF: by {bossSkill[i].defValue}% of member's base DEF");
+                        }
                     }
                     string aoe = bossSkill[i].aoe
                         ? "Yes"
@@ -565,22 +584,32 @@ namespace GI113_Final_Project
                 WriteLine($"MP Cost: {skill.mpCost}");
                 if (skill.percentageKill > 0)
                 {
-                    WriteLine($"Instant kill if HP under: <{skill.percentageKill}%");
+                    WriteLine($"Instant kill if HP under: {skill.percentageKill}%");
                 }
-
-                string healOrHurt = skill.offensive
-                    ? "Deal damage"
-                    : "Heal";
-                WriteLine($"{healOrHurt}: {skill.hpValue}");
-                string harmOrBoost = skill.offensive
-                    ? "Reduce enemy's"
-                    : "Boost player's";
-                WriteLine($"{harmOrBoost} ATK: {skill.atkValue}");
-                WriteLine($"{harmOrBoost} DEF: {skill.defValue}");
-                string aoe = skill.aoe
-                    ? "Yes"
-                    : "No";
-                WriteLine($"AOE: {aoe}");
+                if (!skill.parry)
+                {
+                    string healOrHurt = skill.offensive
+                        ? "Deal damage"
+                        : "Heal";
+                    string enemyOrPlayer = skill.offensive ? "enemy" : "member";
+                    string atkOrHp = skill.offensive ? "ATK (Ignore DEF)" : "HP";
+                    WriteLine($"{healOrHurt}: by {skill.hpValue}% of member's base {atkOrHp}");
+                    string harmOrBoost = skill.offensive
+                        ? "Reduce enemy's"
+                        : "Boost player's";
+                    if (skill.atkValue > 0)
+                    {
+                        WriteLine($"{harmOrBoost} ATK: by {skill.atkValue}% of {enemyOrPlayer}'s base ATK");
+                    }
+                    if (skill.defValue > 0)
+                    {
+                        WriteLine($"{harmOrBoost} DEF: by {skill.defValue}% of {enemyOrPlayer}'s base DEF");
+                    }
+                    string aoe = skill.aoe
+                        ? "Yes"
+                        : "No";
+                    WriteLine($"AOE: {aoe}");
+                }
                 WriteLine("═════════════════════════════════════");
             }
         }
@@ -771,7 +800,7 @@ namespace GI113_Final_Project
         private static void PlayerAttack()
         {
             var rand = new Random();
-            int crit = rand.Next(1, 101) < 15 ? 1 : 2;
+            int crit = rand.Next(1, 101) <= 15 ? 2 : 1;
             string critName = crit == 1 ? "Normal" : "Critical";
             //Fetch all monsters' hp
             List<string> monsterHp = FetchMonster(true);
@@ -969,7 +998,8 @@ namespace GI113_Final_Project
                     int damage = 0;
                     for (int i = 0; i < availableIndex.Count; i++)
                     {
-                        damage = selectedSkill.hpValue / availableIndex.Count;
+                        damage = Convert.ToInt32(playerMaxAtk[currentPlayerTurn]
+                                                 * (selectedSkill.hpValue / 100.0));
                         randomizedMonsterPool[availableIndex[i]][1] =
                             (int)randomizedMonsterPool[availableIndex[i]][1] - damage;
                         randomizedMonsterPool[availableIndex[i]][1] =
@@ -1015,9 +1045,9 @@ namespace GI113_Final_Project
                 //Deal Damage
                 if (selectedSkill.hpValue > 0)
                 {
-                    if (selectedSkill.percentageKill > 0 &&
-                        Convert.ToDouble((int)randomizedMonsterPool[availableIndex[monsterIndex]][1] 
-                                         / monsterMaxHealth[availableIndex[monsterIndex]]) < 0.25)
+                    if (selectedSkill.percentageKill > 0 && 
+                        (int)randomizedMonsterPool[availableIndex[monsterIndex]][1] 
+                            / (double)monsterMaxHealth[availableIndex[monsterIndex]] < 0.25)
                     {
                         randomizedMonsterPool[availableIndex[monsterIndex]][1] = 0;
                         Clear();
@@ -1027,7 +1057,8 @@ namespace GI113_Final_Project
                     else
                     {
                         int damage;
-                        damage = selectedSkill.hpValue;
+                        damage = Convert.ToInt32(playerMaxAtk[currentPlayerTurn] 
+                                                 * (selectedSkill.hpValue / 100.0));
                         randomizedMonsterPool[availableIndex[monsterIndex]][1] =
                             (int)randomizedMonsterPool[availableIndex[monsterIndex]][1] - damage;
                         randomizedMonsterPool[availableIndex[monsterIndex]][1] =
@@ -1087,7 +1118,8 @@ namespace GI113_Final_Project
                         {
                             if ((int)currentPlayerPool[i][1] > 0)
                             {
-                                heal = selectedSkill.hpValue;
+                                heal = Convert.ToInt32(playerMaxHealth[i]
+                                                       * (selectedSkill.hpValue / 100.0));
                                 currentPlayerPool[i][1] = (int)currentPlayerPool[i][1] + heal;
                                 currentPlayerPool[i][1] = (int)currentPlayerPool[i][1] > playerMaxHealth[i]
                                     ? playerMaxHealth[i]
@@ -1096,7 +1128,7 @@ namespace GI113_Final_Project
                         }
                         Clear();
                         WriteLineWithSpeed($"{currentPlayerPool[currentPlayerTurn][0]} used {selectedSkill.name}!");
-                        WriteLineWithSpeed($"Healed {heal} HP across the party!");
+                        WriteLineWithSpeed($"Healed {selectedSkill.hpValue}% HP across the party!");
                     }
                     
                     //Boost ATK (Encore)
@@ -1107,15 +1139,23 @@ namespace GI113_Final_Project
                         {
                             if ((int)currentPlayerPool[i][2] > 0)
                             {
-                                boost = selectedSkill.atkValue;
-                                currentPlayerPool[i][2] = (int)currentPlayerPool[i][2] + boost;
-                                underEncore[i] = true;
-                                encoreDuration[i] += 10;
+                                if (underEncore[i] != true)
+                                {
+                                    boost = Convert.ToInt32(playerMaxAtk[i] 
+                                                            * (selectedSkill.atkValue / 100.0));
+                                    currentPlayerPool[i][2] = (int)currentPlayerPool[i][2] + boost;
+                                    underEncore[i] = true;
+                                    encoreDuration[i] += 10;
+                                }
+                                else
+                                {
+                                    encoreDuration[i] = 10;
+                                }
                             }
                         }
                         Clear();
                         WriteLineWithSpeed($"{currentPlayerPool[currentPlayerTurn][0]} used {selectedSkill.name}!");
-                        WriteLineWithSpeed($"Boosted ATK by {boost} points across the party!");
+                        WriteLineWithSpeed($"Boosted ATK by {selectedSkill.atkValue}% across the party!");
                     }
                     Thread.Sleep(1000);
                     Clear();
@@ -1237,23 +1277,40 @@ namespace GI113_Final_Project
             //Boost ATK
             if (ItemInventory.currentInventory[itemIndex].item.atkValue > 0)
             {
-                int atkBoost = Convert.ToInt32(playerMaxAtk[playerIndex]
+                int atkBoost = 0;
+                if (usedAtkPotion[playerIndex] != true)
+                {
+                    atkBoost = Convert.ToInt32(playerMaxAtk[playerIndex]
                                                * (ItemInventory.currentInventory[itemIndex].item.atkValue / 100.0));
-                currentPlayerPool[playerIndex][2] = (int)currentPlayerPool[playerIndex][2] + atkBoost;
+                    currentPlayerPool[playerIndex][2] = (int)currentPlayerPool[playerIndex][2] + atkBoost;
+                    atkPotionDuration[playerIndex] += 10;
+                    usedAtkPotion[playerIndex] = true;
+                }
+                else
+                {
+                    atkPotionDuration[playerIndex] = 10;
+                }
                 WriteLineWithSpeed($"Boosted ATK {atkBoost} points, now {currentPlayerPool[playerIndex][2]}!");
-                atkPotionDuration[playerIndex] += 10;
-                usedAtkPotion[playerIndex] = true;
+                
             }
             
             //Boost DEF
             if (ItemInventory.currentInventory[itemIndex].item.defValue > 0)
             {
-                int defBoost = Convert.ToInt32(playerMaxDef[playerIndex]
-                                               * (ItemInventory.currentInventory[itemIndex].item.defValue / 100.0));
-                currentPlayerPool[playerIndex][3] = (int)currentPlayerPool[playerIndex][3] + defBoost;
+                int defBoost = 0;
+                if (usedDefPotion[playerIndex] != true)
+                {
+                    defBoost = Convert.ToInt32(playerMaxDef[playerIndex]
+                                                   * (ItemInventory.currentInventory[itemIndex].item.defValue / 100.0));
+                    currentPlayerPool[playerIndex][3] = (int)currentPlayerPool[playerIndex][3] + defBoost;
+                    defPotionDuration[playerIndex] += 10;
+                    usedDefPotion[playerIndex] = true;
+                }
+                else
+                {
+                    defPotionDuration[playerIndex] = 10;
+                }
                 WriteLineWithSpeed($"Boosted DEF {defBoost} points, now {currentPlayerPool[playerIndex][3]}!");
-                defPotionDuration[playerIndex] += 10;
-                usedDefPotion[playerIndex] = true;
             }
             
             //Recover MP
@@ -1283,7 +1340,7 @@ namespace GI113_Final_Project
         private static void MonsterAttack()
         {
             var rand = new Random();
-            int crit = rand.Next(1, 101) < 15 ? 1 : 2;
+            int crit = rand.Next(1, 101) <= 15 ? 2 : 1;
             string critName = crit == 1 ? "Normal" : "Critical";
             //Fetch all players' hp
             List<string> playerHp = FetchPlayer(true);
@@ -1379,7 +1436,8 @@ namespace GI113_Final_Project
             
             if (bossSkill[randomSkill].aoe)
             {
-                int damage = bossSkill[randomSkill].hpValue;
+                int damage = Convert.ToInt32((int)randomizedMonsterPool[currentMonsterTurn][2] 
+                    * bossSkill[randomSkill].hpValue / 100.0);
                 for (int i = 0; i < currentPlayerPool.Length; i++)
                 {
                     if ((int)currentPlayerPool[i][1] > 0)
@@ -1400,7 +1458,8 @@ namespace GI113_Final_Project
             }
             else
             {
-                int damage = bossSkill[randomSkill].hpValue;
+                int damage = Convert.ToInt32((int)randomizedMonsterPool[currentMonsterTurn][2] 
+                    * bossSkill[randomSkill].hpValue / 100.0);
                 //Apply damage
                 currentPlayerPool[availableIndex[randomizedIndex]][1] =
                     (int)currentPlayerPool[availableIndex[randomizedIndex]][1] - damage;
@@ -1424,17 +1483,26 @@ namespace GI113_Final_Project
                 {
                     if ((int)currentPlayerPool[i][1] > 0)
                     {
-                        debuff = bossSkill[randomSkill].atkValue;
-                        currentPlayerPool[i][2] = (int)currentPlayerPool[i][2] - debuff;
-                        currentPlayerPool[i][2] =
-                            (int)currentPlayerPool[i][2] < 0 ? 0 : (int)currentPlayerPool[i][2];
-                        underRoar[i] = true;
-                        roarDuration[i] += 10;
+                        if (underRoar[i] != true)
+                        {
+                            debuff = Convert.ToInt32(playerMaxAtk[i]
+                                * bossSkill[randomSkill].atkValue / 100.0);
+                            currentPlayerPool[i][2] = (int)currentPlayerPool[i][2] - debuff;
+                            currentPlayerPool[i][2] =
+                                (int)currentPlayerPool[i][2] < 0 ? 0 : (int)currentPlayerPool[i][2];
+                            underRoar[i] = true;
+                            roarDuration[i] += 10;
+                        }
+                        else
+                        {
+                            roarDuration[i] = 10;
+                        }
+                        
                     }
                 }
                 Clear();
                 WriteLineWithSpeed($"{randomizedMonsterPool[currentMonsterTurn][0]} used {bossSkill[randomSkill].name}!");
-                WriteLineWithSpeed($"Reduced ATK by {debuff} points across the party...");
+                WriteLineWithSpeed($"Reduced ATK by {bossSkill[randomSkill].atkValue}% across the party...");
             }
                 
             //Debuff DEF
@@ -1445,17 +1513,25 @@ namespace GI113_Final_Project
                 {
                     if ((int)currentPlayerPool[i][1] > 0)
                     {
-                        debuff = bossSkill[randomSkill].defValue;
-                        currentPlayerPool[i][3] = (int)currentPlayerPool[i][3] - debuff;
-                        currentPlayerPool[i][3] =
-                            (int)currentPlayerPool[i][3] < 0 ? 0 : (int)currentPlayerPool[i][3];
-                        underKing[i] = true;
-                        kingDuration[i] += 10;
+                        if (underKing[i] != true)
+                        {
+                            debuff = Convert.ToInt32(playerMaxDef[i]
+                                * bossSkill[randomSkill].defValue / 100.0);
+                            currentPlayerPool[i][3] = (int)currentPlayerPool[i][3] - debuff;
+                            currentPlayerPool[i][3] =
+                                (int)currentPlayerPool[i][3] < 0 ? 0 : (int)currentPlayerPool[i][3];
+                            underKing[i] = true;
+                            kingDuration[i] += 10;
+                        }
+                        else
+                        {
+                            kingDuration[i] = 10;
+                        }
                     }
                 }
                 Clear();
                 WriteLineWithSpeed($"{randomizedMonsterPool[currentMonsterTurn][0]} used {bossSkill[randomSkill].name}!");
-                WriteLineWithSpeed($"Reduced DEF by {debuff} points across the party...");
+                WriteLineWithSpeed($"Reduced DEF by {bossSkill[randomSkill].defValue}% across the party...");
             }
             
             randomizedMonsterPool[currentMonsterTurn][4] = 0;
@@ -1471,6 +1547,7 @@ namespace GI113_Final_Project
     {
         public static void ShopMainMenu()
         {
+            Clear();
             WriteLine(BigText.shop);
             NewEmptyLines(1);
             WriteLineWithSpeed("Please select your options... ");
@@ -1486,6 +1563,16 @@ namespace GI113_Final_Project
                     Blacksmith.WeaponMenu();
                     break;
                 case 2 :
+                    Clear();
+                    WriteLineWithSpeed("Would you like to continue?");
+                    if (CreateMenu(new[] { "Confirm", "Cancel" }, combatColors) == 1)
+                    {
+                        Clear();
+                        ShopMainMenu();
+                        Clear();
+                    }
+                    Clear();
+                    Program.StartingCombat();
                     break;
             }
         }
@@ -1527,6 +1614,7 @@ namespace GI113_Final_Project
                 UpdateItemGUI();
                 NewEmptyLines(1);
                 WriteLineWithSpeed("Please select item to buy... ");
+                WriteLineWithSpeed($"Coins: {Wallet.money}");
                 NewEmptyLines(1);
                 List<string> itemOption = FetchItems();
                 itemOption.Add("Go Back");
@@ -1549,11 +1637,13 @@ namespace GI113_Final_Project
                 if (Wallet.money < ItemInventory.currentInventory[index].item.price)
                 {
                     WriteLineWithSpeed("You don't have enough money for this item...");
+                    Thread.Sleep(1000);
                     Clear();
                     ItemMenu();
                 }
                 ItemInventory.AddItem(ItemInventory.currentInventory[index],1);
                 Wallet.RemoveMoney(ItemInventory.currentInventory[index].item.price);
+                Thread.Sleep(1000);
                 Clear();
                 ItemMenu();
             }
@@ -1569,9 +1659,9 @@ namespace GI113_Final_Project
                     WriteLine($"{WeaponInventory.weaponSets[i].name}:");
                     WriteLine($"Current Level: {WeaponInventory.weaponSets[i].lvl}");
                     WriteLine($"Current Modifier: {WeaponInventory.weaponSets[i].baseModifier}");
-                    if (WeaponInventory.weaponSets[i].lvl < 5)
+                    if (WeaponInventory.weaponSets[i].lvl < 6)
                     {
-                        double newStat = WeaponInventory.weaponSets[i].baseModifier + Program.level / 10.0;
+                        double newStat = 1.0 + (WeaponInventory.weaponSets[i].lvl) / 10.0;
                         WriteLine($"Upgrade From: {WeaponInventory.weaponSets[i].baseModifier} -> {newStat}");
                         WriteLine($"Upgrade Price: {WeaponInventory.weaponSets[i].price}");
                     }
@@ -1582,14 +1672,18 @@ namespace GI113_Final_Project
                     WriteLine("═════════════════════════════════════");
                 }
             }
-            private static List<string> FetchWeapons()
+            private static List<string> FetchWeapons(bool fetchLevel)
             {
                 List<string> weaponOptions = new List<string>();
             
                 //Fetch Items
                 for (int i = 0; i < WeaponInventory.weaponSets.Length; i++)
                 {
-                    if (WeaponInventory.weaponSets[i].lvl < 5)
+                    if (fetchLevel)
+                    {
+                        weaponOptions.Add(WeaponInventory.weaponSets[i].lvl.ToString());
+                    }
+                    else
                     {
                         weaponOptions.Add(WeaponInventory.weaponSets[i].name);
                     }
@@ -1603,8 +1697,23 @@ namespace GI113_Final_Project
                 UpdateWeaponGUI();
                 NewEmptyLines(1);
                 WriteLineWithSpeed("Please select weapon to upgrade... ");
+                WriteLineWithSpeed($"Coins: {Wallet.money}");
                 NewEmptyLines(1);
-                List<string> weaponOption = FetchWeapons();
+                List<string> weaponLevel = FetchWeapons(true);
+                List<int> availableIndex = new List<int>();
+                for (int i = 0; i < weaponLevel.Count; i++)
+                {
+                    if (Convert.ToInt32(weaponLevel[i]) < 6)
+                    {
+                        availableIndex.Add(i);
+                    }
+                }
+
+                List<string> weaponOption = new List<string>();
+                foreach (int i in availableIndex)
+                {
+                    weaponOption.Add(WeaponInventory.weaponSets[i].name);
+                }
                 weaponOption.Add("Go Back");
                 int index = CreateMenu(weaponOption.ToArray(), combatColors);
                 if (index == weaponOption.Count - 1)
@@ -1622,14 +1731,16 @@ namespace GI113_Final_Project
                 }
                 
                 Clear();
-                if (Wallet.money < 70)
+                if (Wallet.money < WeaponInventory.weaponSets[availableIndex[index]].price)
                 {
                     WriteLineWithSpeed("You don't have enough money to upgrade this item...");
+                    Thread.Sleep(1000);
                     Clear();
                     WeaponMenu();
                 }
-                WeaponInventory.UpLevel(WeaponInventory.weaponSets[index]);
-                Wallet.RemoveMoney(WeaponInventory.weaponSets[index].price);
+                WeaponInventory.UpLevel(WeaponInventory.weaponSets[availableIndex[index]]);
+                Wallet.RemoveMoney(WeaponInventory.weaponSets[availableIndex[index]].price);
+                Thread.Sleep(1000);
                 Clear();
                 WeaponMenu();
             }
